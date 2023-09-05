@@ -2,7 +2,7 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 
 export const useUserStore = defineStore('user', () => {
   /**
-   * Current name of the user.
+   * 用户的当前名称。
    */
   const savedName = ref('')
   const previousNames = ref(new Set<string>())

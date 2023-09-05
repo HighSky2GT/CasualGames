@@ -6,13 +6,9 @@ import generateSitemap from 'vite-ssg-sitemap'
 import Layouts from 'vite-plugin-vue-layouts'
 import Components from 'unplugin-vue-components/vite'
 import AutoImport from 'unplugin-auto-import/vite'
-import Markdown from 'vite-plugin-vue-markdown'
-import { VitePWA } from 'vite-plugin-pwa'
 import VueI18n from '@intlify/unplugin-vue-i18n/vite'
 import VueDevTools from 'vite-plugin-vue-devtools'
-import LinkAttributes from 'markdown-it-link-attributes'
 import Unocss from 'unocss/vite'
-import Shiki from 'markdown-it-shiki'
 import VueMacros from 'unplugin-vue-macros/vite'
 import WebfontDownload from 'vite-plugin-webfont-dl'
 
@@ -33,14 +29,27 @@ export default defineConfig({
     }),
 
     // https://github.com/hannoeru/vite-plugin-pages
+    // 自动路由生成器，这样就不用手动维护路由文件了
+    // 默认从src/pages目录下根据.vue或.js文件生成路由,可以通过dirs修改默认路径
+    // 可以通过在 ~pages 模块来访问生成的路由 例：import routes from '~pages'
     Pages({
-      extensions: ['vue', 'md'],
+      extensions: ['vue'],
     }),
 
     // https://github.com/JohnCampionJr/vite-plugin-vue-layouts
+    /**
+     * 路由模板
+     * 默认路径为/src/layouts
+     * 插件中实现根据路由元信息实现切换路由模板
+     * <route lang="yaml">
+     *  meta:
+     *    layout: xxx
+     * </route>
+     */
     Layouts(),
 
     // https://github.com/antfu/unplugin-auto-import
+    // 自动导包
     AutoImport({
       imports: [
         'vue',
@@ -49,7 +58,7 @@ export default defineConfig({
         '@vueuse/head',
         '@vueuse/core',
       ],
-      dts: 'src/auto-imports.d.ts',
+      dts: 'src/types/auto-imports.d.ts',
       dirs: [
         'src/composables',
         'src/stores',
@@ -58,69 +67,16 @@ export default defineConfig({
     }),
 
     // https://github.com/antfu/unplugin-vue-components
+    // 组件自动导入
     Components({
-      // allow auto load markdown components under `./src/components/`
-      extensions: ['vue', 'md'],
-      // allow auto import and register components used in markdown
-      include: [/\.vue$/, /\.vue\?vue/, /\.md$/],
-      dts: 'src/components.d.ts',
+      extensions: ['vue'],
+      include: [/\.vue$/, /\.vue\?vue/],
+      dts: 'src/types/components.d.ts',
     }),
 
     // https://github.com/antfu/unocss
     // see uno.config.ts for config
     Unocss(),
-
-    // https://github.com/antfu/vite-plugin-vue-markdown
-    // Don't need this? Try vitesse-lite: https://github.com/antfu/vitesse-lite
-    Markdown({
-      wrapperClasses: 'prose prose-sm m-auto text-left',
-      headEnabled: true,
-      markdownItSetup(md) {
-        // https://prismjs.com/
-        md.use(Shiki, {
-          theme: {
-            light: 'vitesse-light',
-            dark: 'vitesse-dark',
-          },
-        })
-        md.use(LinkAttributes, {
-          matcher: (link: string) => /^https?:\/\//.test(link),
-          attrs: {
-            target: '_blank',
-            rel: 'noopener',
-          },
-        })
-      },
-    }),
-
-    // https://github.com/antfu/vite-plugin-pwa
-    VitePWA({
-      registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'safari-pinned-tab.svg'],
-      manifest: {
-        name: 'Vitesse',
-        short_name: 'Vitesse',
-        theme_color: '#ffffff',
-        icons: [
-          {
-            src: '/pwa-192x192.png',
-            sizes: '192x192',
-            type: 'image/png',
-          },
-          {
-            src: '/pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
-          },
-          {
-            src: '/pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'any maskable',
-          },
-        ],
-      },
-    }),
 
     // https://github.com/intlify/bundle-tools/tree/main/packages/unplugin-vue-i18n
     VueI18n({
@@ -131,6 +87,7 @@ export default defineConfig({
     }),
 
     // https://github.com/feat-agency/vite-plugin-webfont-dl
+    // 字体图标的插件
     WebfontDownload(),
 
     // https://github.com/webfansplz/vite-plugin-vue-devtools
